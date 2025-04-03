@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management | 365 Trip ERP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/api.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-blue-800 text-white p-4">
+            <div class="flex items-center space-x-2 mb-8">
+                <span class="text-xl font-bold">365 Trip ERP</span>
+            </div>
+            <nav>
+                <div class="mb-4">
+                    <p class="text-blue-200 uppercase text-xs font-semibold mb-2">Main</p>
+                    <a href="../../index.html" class="block py-2 px-3 rounded hover:bg-blue-700 mb-1">
+                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                    </a>
+                </div>
+                <div class="mb-4">
+                    <p class="text-blue-200 uppercase text-xs font-semibold mb-2">Modules</p>
+                    <a href="../driver/driver-profile.html" class="block py-2 px-3 rounded hover:bg-blue-700 mb-1">
+                        <i class="fas fa-users mr-2"></i>Driver Management
+                    </a>
+                    <a href="#" class="block py-2 px-3 rounded bg-blue-700 mb-1">
+                        <i class="fas fa-car mr-2"></i>Fleet Management
+                    </a>
+                    <a href="../agent/agent-portal.html" class="block py-2 px-3 rounded hover:bg-blue-700 mb-1">
+                        <i class="fas fa-handshake mr-2"></i>Agent Model
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+                <h1 class="text-2xl font-semibold text-gray-800">Fleet Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <button id="addVehicleBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>Add Vehicle
+                    </button>
+                </div>
+            </header>
+
+            <main class="p-6">
+                <!-- Fleet Status Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Total Vehicles</p>
+                                <p class="text-3xl font-bold" id="totalVehicles">0</p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-car text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Available</p>
+                                <p class="text-3xl font-bold" id="availableVehicles">0</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-check-circle text-green-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">In Maintenance</p>
+                                <p class="text-3xl font-bold" id="maintenanceVehicles">0</p>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-full">
+                                <i class="fas fa-tools text-yellow-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500">Assigned</p>
+                                <p class="text-3xl font-bold" id="assignedVehicles">0</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-full">
+                                <i class="fas fa-user-tie text-purple-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle List Table -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                        <h2 class="text-lg font-medium text-gray-700">Vehicle Inventory</h2>
+                        <div class="relative">
+                            <input type="text" placeholder="Search vehicles..." 
+                                class="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                id="vehicleSearch">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Service</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="vehicleTableBody">
+                                <!-- Vehicle rows will be inserted here by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add/Edit Vehicle Modal -->
+                <div id="vehicleModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+                    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+                        <div class="p-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4" id="modalTitle">Add New Vehicle</h3>
+                            <form id="vehicleForm">
+                                <input type="hidden" id="vehicleId">
+                                <div class="mb-4">
+                                    <label for="vehicleMake" class="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                                    <input type="text" id="vehicleMake" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="vehicleModel" class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                                    <input type="text" id="vehicleModel" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="vehicleYear" class="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                                    <input type="number" id="vehicleYear" min="2000" max="2023" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="vehiclePlate" class="block text-sm font-medium text-gray-700 mb-1">License Plate</label>
+                                    <input type="text" id="vehiclePlate" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="mb-4">
+                                    <label for="vehicleStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                    <select id="vehicleStatus" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="available">Available</option>
+                                        <option value="assigned">Assigned</option>
+                                        <option value="maintenance">Maintenance</option>
+                                        <option value="out_of_service">Out of Service</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="lastService" class="block text-sm font-medium text-gray-700 mb-1">Last Service Date</label>
+                                    <input type="date" id="lastService" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div class="flex justify-end space-x-3">
+                                    <button type="button" id="cancelVehicleBtn"
+                                        class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit"
+                                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        Save Vehicle
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const addVehicleBtn = document.getElementById('addVehicleBtn');
+        const vehicleModal = document.getElementById('vehicleModal');
+        const vehicleForm = document.getElementById('vehicleForm');
+        const cancelVehicleBtn = document.getElementById('cancelVehicleBtn');
+        const vehicleTableBody = document.getElementById('vehicleTableBody');
+        const vehicleSearch = document.getElementById('vehicleSearch');
+
+        // Stats elements
+        const totalVehicles = document.getElementById('totalVehicles');
+        const availableVehicles = document.getElementById('availableVehicles');
+        const maintenanceVehicles = document.getElementById('maintenanceVehicles');
+        const assignedVehicles = document.getElementById('assignedVehicles');
+
+        // Event Listeners
+        addVehicleBtn.addEventListener('click', () => openVehicleModal());
+        cancelVehicleBtn.addEventListener('click', () => closeVehicleModal());
+        vehicleForm.addEventListener('submit', handleVehicleSubmit);
+        vehicleSearch.addEventListener('input', filterVehicles);
+
+        // Load vehicles on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadVehicles();
+        });
+
+        // Functions
+        function openVehicleModal(vehicle = null) {
+            const modalTitle = document.getElementById('modalTitle');
+            const vehicleId = document.getElementById('vehicleId');
+            const vehicleMake = document.getElementById('vehicleMake');
+            const vehicleModel = document.getElementById('vehicleModel');
+            const vehicleYear = document.getElementById('vehicleYear');
+            const vehiclePlate = document.getElementById('vehiclePlate');
+            const vehicleStatus = document.getElementById('vehicleStatus');
+            const lastService = document.getElementById('lastService');
+
+            if (vehicle) {
+                modalTitle.textContent = 'Edit Vehicle';
+                vehicleId.value = vehicle.id;
+                vehicleMake.value = vehicle.make;
+                vehicleModel.value = vehicle.model;
+                vehicleYear.value = vehicle.year;
+                vehiclePlate.value = vehicle.plate || '';
+                vehicleStatus.value = vehicle.status;
+                lastService.value = vehicle.lastService || '';
+            } else {
+                modalTitle.textContent = 'Add New Vehicle';
+                vehicleForm.reset();
+                lastService.value = new Date().toISOString().split('T')[0];
+            }
+
+            vehicleModal.classList.remove('hidden');
+        }
+
+        function closeVehicleModal() {
+            vehicleModal.classList.add('hidden');
+        }
+
+        async function handleVehicleSubmit(e) {
+            e.preventDefault();
+            
+            const vehicleData = {
+                make: document.getElementById('vehicleMake').value,
+                model: document.getElementById('vehicleModel').value,
+                year: document.getElementById('vehicleYear').value,
+                plate: document.getElementById('vehiclePlate').value,
+                status: document.getElementById('vehicleStatus').value,
+                lastService: document.getElementById('lastService').value
+            };
+
+            const vehicleId = document.getElementById('vehicleId').value;
+            
+            if (vehicleId) {
+                // Update existing vehicle
+                await API.update('vehicles', vehicleId, vehicleData);
+            } else {
+                // Create new vehicle
+                await API.create('vehicles', vehicleData);
+            }
+
+            closeVehicleModal();
+            await loadVehicles();
+        }
+
+        async function loadVehicles() {
+            const vehicles = await API.read('vehicles');
+            updateStats(vehicles);
+            renderVehicles(vehicles);
+        }
+
+        function updateStats(vehicles) {
+            totalVehicles.textContent = vehicles.length;
+            availableVehicles.textContent = vehicles.filter(v => v.status === 'available').length;
+            maintenanceVehicles.textContent = vehicles.filter(v => v.status === 'maintenance').length;
+            assignedVehicles.textContent = vehicles.filter(v => v.status === 'assigned').length;
+        }
+
+        function renderVehicles(vehicles) {
+            vehicleTableBody.innerHTML = '';
+            
+            vehicles.forEach(vehicle => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-car text-blue-600"></i>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${vehicle.make} ${vehicle.model}</div>
+                                <div class="text-sm text-gray-500">${vehicle.year}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${vehicle.plate || 'Not specified'}</div>
+                        <div class="text-sm text-gray-500">ID: ${vehicle.id}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${vehicle.status === 'available' ? 'bg-green-100 text-green-800' : 
+                              vehicle.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
+                              vehicle.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' : 
+                              'bg-red-100 text-red-800'}">
+                            ${vehicle.status.replace('_', ' ')}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${vehicle.lastService || 'No record'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-900 mr-3 edit-btn" data-id="${vehicle.id}">Edit</button>
+                        <button class="text-red-600 hover:text-red-900 delete-btn" data-id="${vehicle.id}">Delete</button>
+                    </td>
+                `;
+                vehicleTableBody.appendChild(row);
+            });
+
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const vehicleId = btn.getAttribute('data-id');
+                    const vehicle = await API.read('vehicles', vehicleId);
+                    openVehicleModal(vehicle);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const vehicleId = btn.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this vehicle?')) {
+                        await API.delete('vehicles', vehicleId);
+                        await loadVehicles();
+                    }
+                });
+            });
+        }
+
+        function filterVehicles() {
+            const searchTerm = vehicleSearch.value.toLowerCase();
+            const rows = vehicleTableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
